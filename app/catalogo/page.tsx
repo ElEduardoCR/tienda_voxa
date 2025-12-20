@@ -1,17 +1,60 @@
-import { prisma } from "@/lib/prisma"
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
-export const dynamic = 'force-dynamic'
+interface Product {
+  id: string
+  sku: string
+  name: string
+  description: string | null
+  price: number
+  image: string | null
+  stock: number
+}
 
-export default async function CatalogoPage() {
-  const products = await prisma.product.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  })
+export default function CatalogoPage() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/productos")
+        if (!response.ok) {
+          throw new Error("Error al cargar productos")
+        }
+        const data = await response.json()
+        setProducts(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-center text-muted-foreground">Cargando productos...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-center text-destructive">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -71,4 +114,3 @@ export default async function CatalogoPage() {
     </div>
   )
 }
-
