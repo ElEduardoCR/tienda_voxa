@@ -1,11 +1,10 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { getServerSession } from "@/lib/auth-helper"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 
 export default async function CuentaPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
 
   if (!session) {
     redirect("/auth/login")
