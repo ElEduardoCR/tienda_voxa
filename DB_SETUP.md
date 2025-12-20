@@ -58,6 +58,6 @@ O desde el dashboard de Vercel:
 ## Notas
 
 - Las páginas con consultas Prisma tienen `export const dynamic = 'force-dynamic'` para evitar pre-renderizado
-- Las rutas API (`/api/auth/registro` y `/api/auth/[...nextauth]`) están correctamente configuradas
+- Las rutas API (`/api/registro` y `/api/auth/[...nextauth]`) están correctamente configuradas
 - `lib/prisma.ts` tiene el singleton correcto para evitar múltiples instancias
 
