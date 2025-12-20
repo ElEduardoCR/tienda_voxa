@@ -210,6 +210,54 @@ npm run build        # Build para producción
 npm run start        # Inicia servidor de producción
 ```
 
+## 🗄️ Migraciones y Base de Datos
+
+### Primera Migración
+
+Para crear las tablas en la base de datos por primera vez:
+
+```bash
+# 1. Generar Prisma Client
+npx prisma generate
+
+# 2. Crear migración inicial
+npx prisma migrate dev --name init_users
+
+# 3. (Opcional) Ejecutar seed con datos demo
+npm run db:seed
+```
+
+### Probar Endpoints
+
+Una vez que el servidor esté corriendo (`npm run dev`):
+
+**Health Check de DB:**
+```bash
+curl http://localhost:3000/api/health/db
+# Respuesta esperada: {"ok":true,"count":N}
+```
+
+**Registro de Usuario:**
+```bash
+curl -X POST http://localhost:3000/api/registro \
+  -H "Content-Type: application/json" \
+  -d '{"email":"usuario@ejemplo.com","password":"contraseña123","name":"Nombre Usuario"}'
+# Respuesta esperada: {"ok":true}
+```
+
+### Migraciones en Producción (Vercel)
+
+Las migraciones deben ejecutarse manualmente después del deploy:
+
+```bash
+# Conectar a la DB de producción
+DATABASE_URL="tu-connection-string-de-produccion" npx prisma migrate deploy
+
+# O usar el CLI de Vercel
+vercel env pull .env.local
+npx prisma migrate deploy
+```
+
 ## 🔐 Autenticación
 
 El sistema usa **NextAuth v5 (Auth.js)** con:

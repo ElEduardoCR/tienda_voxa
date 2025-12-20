@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     if (existingUser) {
       return NextResponse.json(
         { error: "El email ya está registrado" },
-        { status: 400 }
+        { status: 409 }
       )
     }
 
@@ -33,25 +33,16 @@ export async function POST(request: Request) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     // Crear usuario
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
         role: "USER",
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-      },
     })
 
-    return NextResponse.json(
-      { message: "Usuario registrado exitosamente", user },
-      { status: 201 }
-    )
+    return NextResponse.json({ ok: true }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
