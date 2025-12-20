@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AddToCartButton } from "@/components/add-to-cart-button"
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProductoPage({
   params,
 }: {
