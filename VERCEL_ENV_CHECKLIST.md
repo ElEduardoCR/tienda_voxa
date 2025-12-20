@@ -21,6 +21,33 @@ Para que la aplicación funcione correctamente, asegúrate de tener estas variab
 - **Valor**: `https://tienda.voxa.mx`
 - **Importante**: Debe coincidir con tu dominio de producción
 
+### 4. SMTP_HOST
+- **Valor**: `smtp.gmail.com` (para Gmail)
+- **Otros ejemplos**: `smtp-mail.outlook.com` (Outlook), `smtp.sendgrid.net` (SendGrid)
+
+### 5. SMTP_PORT
+- **Valor**: `587` (para TLS)
+- **Alternativa**: `465` (para SSL, requiere `SMTP_SECURE=true`)
+
+### 6. SMTP_SECURE
+- **Valor**: `false` (para puerto 587 con TLS)
+- **Alternativa**: `true` (para puerto 465 con SSL)
+
+### 7. SMTP_USER
+- **Valor**: Tu email completo (ej: `tu-email@gmail.com`)
+- **Para Gmail**: Debe ser tu email de Gmail completo
+
+### 8. SMTP_PASSWORD
+- **Valor**: Contraseña de aplicación (Gmail) o contraseña SMTP
+- **Para Gmail**: 
+  1. Habilita verificación en 2 pasos
+  2. Genera contraseña de aplicación en: https://myaccount.google.com/apppasswords
+  3. Copia la contraseña de 16 caracteres (formato: `abcd efgh ijkl mnop`)
+
+### 9. EMAIL_FROM
+- **Valor**: Dirección desde la que se enviarán los correos
+- **Ejemplo**: `tu-email@gmail.com` (puede ser igual a `SMTP_USER`)
+
 ## 📝 Cómo Configurar en Vercel
 
 1. Ve a tu proyecto en [Vercel Dashboard](https://vercel.com/dashboard)

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import * as bcrypt from "bcryptjs"
 import { z } from "zod"
+import { generateToken, hashToken } from "@/lib/tokens"
+import { sendVerificationEmail } from "@/lib/email"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -32,17 +34,45 @@ export async function POST(request: Request) {
     // Hash de la contraseña
     const passwordHash = await bcrypt.hash(password, 10)
 
-    // Crear usuario
-    await prisma.user.create({
+    // Generar token de verificación
+    const verificationToken = generateToken()
+    const tokenHash = hashToken(verificationToken)
+    const expiresAt = new Date()
+    expiresAt.setHours(expiresAt.getHours() + 24) // Expira en 24 horas
+
+    // Crear usuario (emailVerified será null)
+    const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
         role: "USER",
+        emailVerified: null,
       },
     })
 
-    return NextResponse.json({ ok: true }, { status: 201 })
+    // Crear token de verificación
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: tokenHash,
+        expiresAt,
+        userId: user.id,
+      },
+    })
+
+    // Enviar email de verificación (no bloquea la respuesta si falla)
+    try {
+      await sendVerificationEmail(email, name, verificationToken)
+    } catch (emailError) {
+      console.error("Error enviando email de verificación:", emailError)
+      // No fallamos el registro si el email falla, pero logueamos el error
+    }
+
+    return NextResponse.json(
+      { ok: true, message: "Usuario registrado. Por favor verifica tu correo electrónico." },
+      { status: 201 }
+    )
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -48,7 +48,20 @@ Edita `.env` y agrega tus variables:
 DATABASE_URL="tu-connection-string-de-neon-aqui"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="genera-un-secreto-seguro-aqui-minimo-32-caracteres"
+RESEND_API_KEY="tu-resend-api-key-aqui"
+EMAIL_FROM="no-reply@voxa.mx"
 ```
+
+**Nuevas variables (Verificación de correo y recuperación de contraseña con Gmail):**
+
+- **SMTP_HOST**: `smtp.gmail.com`
+- **SMTP_PORT**: `587`
+- **SMTP_SECURE**: `false`
+- **SMTP_USER**: Tu email de Gmail completo (ej: `tu-email@gmail.com`)
+- **SMTP_PASSWORD**: Contraseña de aplicación de Gmail (generar en [Google App Passwords](https://myaccount.google.com/apppasswords))
+- **EMAIL_FROM**: Tu email de Gmail (puede ser igual a `SMTP_USER`)
+
+**Ver documentación completa en `EMAIL_SETUP.md`**
 
 **Generar NEXTAUTH_SECRET:**
 

@@ -39,8 +39,8 @@ export default function RegistroPage() {
       if (!response.ok) {
         setError(data.error || "Error al registrar usuario")
       } else {
-        // Redirigir al login después del registro exitoso
-        router.push("/auth/login?registered=true")
+        // Redirigir a página de verificación después del registro exitoso
+        router.push(`/auth/verificar?email=${encodeURIComponent(email)}`)
       }
     } catch (error) {
       setError("Error al registrar usuario. Intenta nuevamente.")

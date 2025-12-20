@@ -25,9 +25,37 @@ export default function LoginPage() {
     }
   }, [])
 
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [verificationEmail, setVerificationEmail] = useState("")
+  const [resending, setResending] = useState(false)
+
+  const handleResendVerification = async () => {
+    setResending(true)
+    try {
+      const response = await fetch("/api/auth/reenviar-verificacion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        setSuccess("Se ha enviado un nuevo enlace de verificación a tu correo.")
+        setNeedsVerification(false)
+      } else {
+        setError(data.error || "Error al reenviar verificación")
+      }
+    } catch (error) {
+      setError("Error al reenviar verificación. Intenta más tarde.")
+    } finally {
+      setResending(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setSuccess("")
+    setNeedsVerification(false)
     setIsLoading(true)
 
     try {
@@ -38,13 +66,27 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError("Email o contraseña incorrectos")
+        // Verificar si es error de email no verificado
+        if (result.error === "EMAIL_NOT_VERIFIED" || result.error.includes("EMAIL_NOT_VERIFIED")) {
+          setNeedsVerification(true)
+          setVerificationEmail(email)
+          setError("Debes verificar tu correo electrónico antes de iniciar sesión.")
+        } else {
+          setError("Email o contraseña incorrectos")
+        }
       } else {
         router.push("/cuenta")
         router.refresh()
       }
-    } catch (error) {
-      setError("Error al iniciar sesión. Intenta nuevamente.")
+    } catch (error: any) {
+      // NextAuth puede lanzar el error como string en algunos casos
+      if (error?.message?.includes("EMAIL_NOT_VERIFIED") || error?.message === "EMAIL_NOT_VERIFIED") {
+        setNeedsVerification(true)
+        setVerificationEmail(email)
+        setError("Debes verificar tu correo electrónico antes de iniciar sesión.")
+      } else {
+        setError("Error al iniciar sesión. Intenta nuevamente.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -86,7 +128,26 @@ export default function LoginPage() {
               <p className="text-sm text-green-600 bg-green-50 p-3 rounded-md">{success}</p>
             )}
             {error && (
-              <p className="text-sm text-destructive">{error}</p>
+              <div className="space-y-2">
+                <p className="text-sm text-destructive">{error}</p>
+                {needsVerification && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800 mb-2">
+                      ¿No recibiste el correo de verificación?
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendVerification}
+                      disabled={resending}
+                      className="w-full"
+                    >
+                      {resending ? "Enviando..." : "Reenviar verificación"}
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
@@ -96,6 +157,11 @@ export default function LoginPage() {
             <span className="text-muted-foreground">¿No tienes cuenta? </span>
             <Link href="/auth/registro" className="text-primary hover:underline">
               Regístrate aquí
+            </Link>
+          </div>
+          <div className="mt-2 text-center text-sm">
+            <Link href="/auth/olvido" className="text-primary hover:underline">
+              ¿Olvidaste tu contraseña?
             </Link>
           </div>
           <div className="mt-4 p-4 bg-muted rounded-lg">
