@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import * as bcrypt from "bcryptjs"
 import { z } from "zod"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const registroSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -11,6 +13,7 @@ const registroSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const { prisma } = await import("@/lib/prisma")
     const body = await request.json()
     const { email, password, name } = registroSchema.parse(body)
 
