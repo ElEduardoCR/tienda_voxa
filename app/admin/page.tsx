@@ -9,7 +9,7 @@ export default async function AdminPage() {
     redirect("/auth/login")
   }
 
-  if (session.user.role !== "ADMIN") {
+  if (session.user.role && session.user.role !== "ADMIN") {
     redirect("/")
   }
 
