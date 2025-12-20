@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import * as bcrypt from "bcryptjs"
 import { z } from "zod"
@@ -9,7 +9,7 @@ const registroSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
 })
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { email, password, name } = registroSchema.parse(body)
