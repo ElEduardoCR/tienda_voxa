@@ -1,41 +1,32 @@
-import { NextAuthOptions } from "next-auth"
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
-import * as bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs"
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
   providers: [
-    CredentialsProvider({
-      name: "Credentials",
+    Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: {},
+        password: {},
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
+        if (!credentials?.email || !credentials?.password) return null
 
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          }
+          where: { email: credentials.email as string },
         })
 
-        if (!user) {
-          return null
-        }
+        if (!user || !user.passwordHash) return null
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+        const valid = await bcrypt.compare(
+          credentials.password as string,
           user.passwordHash
         )
-
-        if (!isPasswordValid) {
-          return null
-        }
+        if (!valid) return null
 
         return {
           id: user.id,
@@ -43,12 +34,9 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
         }
-      }
-    })
+      },
+    }),
   ],
-  session: {
-    strategy: "jwt",
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -68,5 +56,5 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/login",
   },
-}
+})
 
