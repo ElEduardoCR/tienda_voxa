@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
-export default function VerificarPage() {
+function VerificarForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email")
@@ -104,6 +104,27 @@ export default function VerificarPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function VerificarPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl">Cargando...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Por favor espera...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <VerificarForm />
+    </Suspense>
   )
 }
 
