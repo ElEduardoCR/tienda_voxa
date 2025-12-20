@@ -2,8 +2,17 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
+// Validar que el secret esté configurado
+const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
+
+if (!authSecret) {
+  throw new Error(
+    "NEXTAUTH_SECRET o AUTH_SECRET debe estar configurado en las variables de entorno"
+  )
+}
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  secret: authSecret,
   session: { strategy: "jwt" },
   providers: [
     Credentials({

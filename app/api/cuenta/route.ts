@@ -8,17 +8,25 @@ export async function GET() {
   try {
     const session = await auth()
 
-    if (!session) {
+    if (!session || !session.user) {
       return NextResponse.json(
         { error: "No autenticado" },
         { status: 401 }
       )
     }
 
+    // Validar que email existe en la sesión
+    if (!session.user.email) {
+      return NextResponse.json(
+        { error: "Email no encontrado en la sesión" },
+        { status: 400 }
+      )
+    }
+
     const { prisma } = await import("@/lib/prisma")
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+      where: { email: session.user.email },
       select: {
         id: true,
         email: true,
