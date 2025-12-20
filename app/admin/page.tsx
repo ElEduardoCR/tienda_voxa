@@ -1,9 +1,12 @@
-import { getServerSession } from "@/lib/auth-helper"
+import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
+
 export default async function AdminPage() {
-  const session = await getServerSession()
+  const session = await auth()
 
   if (!session) {
     redirect("/auth/login")
@@ -26,6 +29,9 @@ export default async function AdminPage() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
+            Admin (placeholder)
+          </p>
+          <p className="text-muted-foreground mt-2">
             La integración con Odoo para gestión de inventario, pedidos y productos
             estará disponible próximamente.
           </p>
@@ -34,4 +40,3 @@ export default async function AdminPage() {
     </div>
   )
 }
-
