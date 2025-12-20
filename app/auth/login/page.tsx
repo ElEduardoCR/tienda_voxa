@@ -18,10 +18,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Verificar si viene de registro exitoso
+    // Verificar si viene de registro exitoso o verificación exitosa
     const params = new URLSearchParams(window.location.search)
     if (params.get("registered") === "true") {
       setSuccess("¡Registro exitoso! Ya puedes iniciar sesión.")
+    }
+    if (params.get("verified") === "true") {
+      setSuccess("¡Email verificado exitosamente! Ya puedes iniciar sesión.")
     }
   }, [])
 
@@ -163,17 +166,6 @@ export default function LoginPage() {
             <Link href="/auth/olvido" className="text-primary hover:underline">
               ¿Olvidaste tu contraseña?
             </Link>
-          </div>
-          <div className="mt-4 p-4 bg-muted rounded-lg">
-            <p className="text-xs text-muted-foreground mb-2">
-              <strong>Credenciales de prueba:</strong>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Admin: admin@voxa.mx / admin123
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Usuario: usuario@voxa.mx / usuario123
-            </p>
           </div>
         </CardContent>
       </Card>
