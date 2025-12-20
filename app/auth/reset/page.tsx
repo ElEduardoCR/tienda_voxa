@@ -44,6 +44,11 @@ function ResetForm() {
     e.preventDefault()
     setError("")
 
+    // Prevenir doble envío
+    if (isLoading || success) {
+      return
+    }
+
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden")
       return

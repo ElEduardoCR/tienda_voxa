@@ -20,53 +20,66 @@ export async function POST(request: Request) {
 
     // Buscar token de reset (el token en DB ya es el hash)
     const tokenHash = hashToken(token)
-    const resetToken = await prisma.passwordResetToken.findFirst({
-      where: {
-        token: tokenHash,
-        expiresAt: {
-          gt: new Date(), // No expirado
+    
+    // Usar transacción para evitar race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      // Buscar token no usado con bloqueo (para prevenir uso concurrente)
+      const resetToken = await tx.passwordResetToken.findFirst({
+        where: {
+          token: tokenHash,
+          expiresAt: {
+            gt: new Date(), // No expirado
+          },
+          usedAt: null, // No usado
         },
-        usedAt: null, // No usado
-      },
-      include: {
-        user: true,
-      },
-    })
+        include: {
+          user: true,
+        },
+      })
 
-    if (!resetToken || !resetToken.userId) {
-      return NextResponse.json(
-        { error: "Token inválido, expirado o ya utilizado" },
-        { status: 400 }
-      )
-    }
+      if (!resetToken || !resetToken.userId) {
+        throw new Error("Token inválido, expirado o ya utilizado")
+      }
 
-    // Hash de la nueva contraseña
-    const passwordHash = await bcrypt.hash(password, 10)
+      // Marcar token como usado INMEDIATAMENTE (antes de actualizar contraseña)
+      // Esto previene que el mismo token se use dos veces
+      await tx.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: {
+          usedAt: new Date(),
+        },
+      })
 
-    // Actualizar contraseña del usuario
-    await prisma.user.update({
-      where: { id: resetToken.userId! },
-      data: {
-        passwordHash,
-      },
-    })
+      // Hash de la nueva contraseña
+      const passwordHash = await bcrypt.hash(password, 10)
 
-    // Marcar token como usado
-    await prisma.passwordResetToken.update({
-      where: { id: resetToken.id },
-      data: {
-        usedAt: new Date(),
-      },
+      // Actualizar contraseña del usuario
+      await tx.user.update({
+        where: { id: resetToken.userId },
+        data: {
+          passwordHash,
+        },
+      })
+
+      return { success: true }
     })
 
     return NextResponse.json(
       { ok: true, message: "Contraseña actualizada exitosamente" },
       { status: 200 }
     )
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.errors[0].message },
+        { status: 400 }
+      )
+    }
+
+    // Si el error es de validación de token, retornar error específico
+    if (error.message === "Token inválido, expirado o ya utilizado") {
+      return NextResponse.json(
+        { error: "Token inválido, expirado o ya utilizado" },
         { status: 400 }
       )
     }
