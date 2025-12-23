@@ -18,6 +18,7 @@ export default function NuevoProductoPage() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
+  const [stock, setStock] = useState("0")
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState<{ [key: number]: boolean }>({})
   const [isActive, setIsActive] = useState(true)
@@ -156,6 +157,7 @@ export default function NuevoProductoPage() {
       const categoryId = subcategoriaId || categoriaPrincipalId
 
       const priceCents = Math.round(priceValue * 100) // Convertir a centavos
+      const stockValue = parseInt(stock) || 0
 
       const response = await fetch("/api/admin/productos", {
         method: "POST",
@@ -164,6 +166,7 @@ export default function NuevoProductoPage() {
           name,
           description: description || null,
           priceCents,
+          stock: stockValue,
           images,
           isActive,
           isSoldOut,
@@ -287,6 +290,22 @@ export default function NuevoProductoPage() {
               />
               <p className="text-xs text-muted-foreground">
                 Ingresa el precio en pesos mexicanos
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="stock">Existencias (Stock) *</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                required
+                placeholder="0"
+              />
+              <p className="text-xs text-muted-foreground">
+                Cantidad disponible en inventario
               </p>
             </div>
 

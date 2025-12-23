@@ -18,6 +18,7 @@ interface Product {
   description: string | null
   priceCents: number
   images: string[]
+  stock: number
   isActive: boolean
   isSoldOut: boolean
   categoryId: string
@@ -41,6 +42,7 @@ export default function EditarProductoPage() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
+  const [stock, setStock] = useState("0")
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState<{ [key: number]: boolean }>({})
   const [isActive, setIsActive] = useState(true)
@@ -97,6 +99,7 @@ export default function EditarProductoPage() {
       setName(data.name)
       setDescription(data.description || "")
       setPrice((data.priceCents / 100).toString())
+      setStock((data.stock || 0).toString())
       setImages(data.images || [])
       setIsActive(data.isActive)
       setIsSoldOut(data.isSoldOut)
@@ -233,6 +236,7 @@ export default function EditarProductoPage() {
       const categoryId = subcategoriaId || categoriaPrincipalId
 
       const priceCents = Math.round(priceValue * 100)
+      const stockValue = parseInt(stock) || 0
 
       const response = await fetch(`/api/admin/productos/${id}`, {
         method: "PUT",
@@ -241,6 +245,7 @@ export default function EditarProductoPage() {
           name,
           description: description || null,
           priceCents,
+          stock: stockValue,
           images,
           isActive,
           isSoldOut,
@@ -379,6 +384,21 @@ export default function EditarProductoPage() {
                 onChange={(e) => setPrice(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="stock">Existencias (Stock) *</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Cantidad disponible en inventario
+              </p>
             </div>
 
             <div className="space-y-2">

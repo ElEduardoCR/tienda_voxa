@@ -131,6 +131,7 @@ async function main() {
         description: product.description,
         priceCents: Math.round(product.price * 100), // Convertir a centavos
         images: [product.image],
+        stock: Math.floor(Math.random() * 100) + 10, // Stock aleatorio entre 10 y 110
         isActive: true,
         isSoldOut: false,
         categoryId: categoriaDefault.id,

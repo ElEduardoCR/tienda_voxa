@@ -113,6 +113,7 @@ model Product {
   description String?  @db.Text
   priceCents  Int      @map("price_cents") // Precio en centavos (evita problemas de precisión decimal)
   images      String[] // Array de URLs de imágenes
+  stock       Int      @default(0) @map("stock") // Existencias/inventario
   isActive    Boolean  @default(true) @map("is_active")
   isSoldOut   Boolean  @default(false) @map("is_sold_out")
   categoryId  String   @map("category_id") // FK obligatorio a Category (puede ser principal o subcategoría)
