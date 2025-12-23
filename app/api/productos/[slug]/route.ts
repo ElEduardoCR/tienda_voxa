@@ -3,18 +3,32 @@ import { NextResponse } from "next/server"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+// GET: Obtener producto por slug (público, solo activos)
 export async function GET(
   request: Request,
-  { params }: { params: { sku: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
     const { prisma } = await import("@/lib/prisma")
     
     const product = await prisma.product.findUnique({
-      where: { sku: params.sku },
+      where: { slug: params.slug },
+      select: {
+        id: true,
+        sku: true,
+        name: true,
+        slug: true,
+        description: true,
+        priceCents: true,
+        images: true,
+        isSoldOut: true,
+        isActive: true,
+        createdAt: true,
+      },
     })
 
-    if (!product) {
+    // Si no existe o no está activo, retornar 404
+    if (!product || !product.isActive) {
       return NextResponse.json(
         { error: "Producto no encontrado" },
         { status: 404 }

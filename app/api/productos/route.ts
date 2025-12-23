@@ -7,9 +7,24 @@ export async function GET() {
   try {
     const { prisma } = await import("@/lib/prisma")
     
+    // Solo productos activos para la tienda pública
     const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+      },
       orderBy: {
         createdAt: "desc",
+      },
+      select: {
+        id: true,
+        sku: true,
+        name: true,
+        slug: true,
+        description: true,
+        priceCents: true,
+        images: true,
+        isSoldOut: true,
+        createdAt: true,
       },
     })
 
