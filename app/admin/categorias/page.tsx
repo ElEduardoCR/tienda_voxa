@@ -102,7 +102,7 @@ export default function AdminCategoriasPage() {
             Administra las categorías y subcategorías de la tienda
           </p>
         </div>
-        <Link href="/admin/categorias/nueva">
+        <Link href="/admin/categorias/nuevo">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Nueva Categoría
@@ -116,7 +116,7 @@ export default function AdminCategoriasPage() {
             <p className="text-muted-foreground mb-4">
               No hay categorías registradas
             </p>
-            <Link href="/admin/categorias/nueva">
+            <Link href="/admin/categorias/nuevo">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Crear Primera Categoría

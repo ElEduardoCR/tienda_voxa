@@ -323,7 +323,7 @@ export default function EditarCategoriaPage() {
                     {category.children.length} subcategoría{category.children.length !== 1 ? "s" : ""}
                   </CardDescription>
                 </div>
-                <Link href={`/admin/categorias/nueva?parentId=${id}`}>
+                <Link href={`/admin/categorias/nuevo?parentId=${id}`}>
                   <Button size="sm">
                     <Plus className="mr-2 h-4 w-4" />
                     Agregar
