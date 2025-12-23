@@ -67,6 +67,31 @@ SMTP_PASSWORD="tu-contraseña-de-aplicacion-de-gmail"
 EMAIL_FROM="tu-email@gmail.com"
 ```
 
+---
+
+### 🔹 Almacenamiento de Imágenes (Vercel Blob Storage)
+
+```env
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxxxx..."
+```
+
+**Descripción:** Token de acceso para subir imágenes a Vercel Blob Storage.
+
+**Cómo obtenerla:**
+1. Ve a [Vercel Dashboard](https://vercel.com/dashboard)
+2. Selecciona tu proyecto
+3. Ve a la pestaña **"Storage"** (o busca "Blob" en el menú)
+4. Si no existe, haz clic en **"Create Database"** o **"Add Storage"**
+5. Selecciona **"Blob"** como tipo de storage
+6. Una vez creado, ve a **"Settings"** del storage
+7. Busca la sección **"Tokens"** o **"Access Tokens"**
+8. Haz clic en **"Create Token"**
+9. Nómbralo (ej: "tienda-upload")
+10. Selecciona permisos: **"Read and Write"**
+11. Copia el token generado (formato: `vercel_blob_rw_xxxxx...`)
+
+**Nota:** Este token es necesario para que los administradores puedan subir imágenes de productos desde el panel de administración.
+
 **Descripción:**
 - `SMTP_HOST`: Servidor SMTP (Gmail: `smtp.gmail.com`)
 - `SMTP_PORT`: Puerto SMTP (Gmail: `587` para TLS)
@@ -109,6 +134,9 @@ SMTP_SECURE="false"
 SMTP_USER="tu-email@gmail.com"
 SMTP_PASSWORD="tu-contraseña-de-aplicacion"
 EMAIL_FROM="tu-email@gmail.com"
+
+# Almacenamiento de Imágenes (Vercel Blob)
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxxxx..."
 ```
 
 ---
@@ -169,6 +197,7 @@ Asegúrate de tener configuradas todas estas variables:
 - [ ] `SMTP_USER`
 - [ ] `SMTP_PASSWORD`
 - [ ] `EMAIL_FROM`
+- [ ] `BLOB_READ_WRITE_TOKEN` (opcional para desarrollo local)
 
 ### Producción (Vercel)
 - [ ] `DATABASE_URL`
@@ -180,6 +209,7 @@ Asegúrate de tener configuradas todas estas variables:
 - [ ] `SMTP_USER`
 - [ ] `SMTP_PASSWORD`
 - [ ] `EMAIL_FROM`
+- [ ] `BLOB_READ_WRITE_TOKEN`
 
 ---
 
