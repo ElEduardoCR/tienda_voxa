@@ -9,6 +9,7 @@ async function main() {
 
   // Limpiar datos existentes
   await prisma.product.deleteMany()
+  await prisma.category.deleteMany()
   await prisma.user.deleteMany()
 
   // Crear usuario admin de ejemplo
@@ -34,6 +35,16 @@ async function main() {
     },
   })
   console.log('✅ Usuario de prueba creado:', testUser.email)
+
+  // Crear categoría por defecto
+  const categoriaDefault = await prisma.category.create({
+    data: {
+      name: "General",
+      slug: "general",
+      isActive: true,
+    },
+  })
+  console.log('✅ Categoría por defecto creada:', categoriaDefault.name)
 
   // Crear 10 productos demo
   const productData = [
@@ -122,6 +133,7 @@ async function main() {
         images: [product.image],
         isActive: true,
         isSoldOut: false,
+        categoryId: categoriaDefault.id,
       },
     })
 

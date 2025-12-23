@@ -85,6 +85,26 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique // Slug único global (no se repite aunque sea subcategoría)
+  imageUrl  String?    @map("image_url")
+  parentId  String?    @map("parent_id") // null = categoría principal, != null = subcategoría
+  isActive  Boolean    @default(true) @map("is_active")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Self-reference para jerarquía
+  parent   Category?   @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[]  @relation("CategoryToCategory")
+
+  // Relación con productos
+  products Product[]
+
+  @@map("categories")
+}
+
 model Product {
   id          String   @id @default(cuid())
   sku         String   @unique // SKU único de 6 caracteres empezando desde 100000
@@ -95,8 +115,11 @@ model Product {
   images      String[] // Array de URLs de imágenes
   isActive    Boolean  @default(true) @map("is_active")
   isSoldOut   Boolean  @default(false) @map("is_sold_out")
+  categoryId  String   @map("category_id") // FK obligatorio a Category (puede ser principal o subcategoría)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   @@map("products")
 }

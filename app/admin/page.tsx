@@ -31,6 +31,11 @@ export default async function AdminPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            <Link href="/admin/categorias">
+              <Button variant="outline" className="w-full justify-start">
+                Gestión de Categorías
+              </Button>
+            </Link>
             <Link href="/admin/productos">
               <Button variant="outline" className="w-full justify-start">
                 Gestión de Productos

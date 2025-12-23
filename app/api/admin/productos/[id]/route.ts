@@ -14,6 +14,7 @@ const updateProductSchema = z.object({
   images: z.array(z.string().url("URL de imagen inválida")).optional(),
   isActive: z.boolean().optional(),
   isSoldOut: z.boolean().optional(),
+  categoryId: z.string().min(1, "La categoría es requerida").optional(),
 })
 
 // GET: Obtener producto por ID
@@ -31,6 +32,15 @@ export async function GET(
     
     const product = await prisma.product.findUnique({
       where: { id: params.id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            parentId: true,
+          },
+        },
+      },
     })
 
     if (!product) {
@@ -94,6 +104,27 @@ export async function PUT(
       })
     }
 
+    // Si se actualiza categoryId, verificar que existe y está activa
+    if (validatedData.categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: validatedData.categoryId },
+      })
+
+      if (!category) {
+        return NextResponse.json(
+          { error: "Categoría no encontrada" },
+          { status: 404 }
+        )
+      }
+
+      if (!category.isActive) {
+        return NextResponse.json(
+          { error: "No se puede asignar producto a una categoría inactiva" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Actualizar producto
     const product = await prisma.product.update({
       where: { id: params.id },
@@ -104,6 +135,7 @@ export async function PUT(
         ...(validatedData.images !== undefined && { images: validatedData.images }),
         ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
         ...(validatedData.isSoldOut !== undefined && { isSoldOut: validatedData.isSoldOut }),
+        ...(validatedData.categoryId && { categoryId: validatedData.categoryId }),
         ...(slug !== existingProduct.slug && { slug }),
       },
     })

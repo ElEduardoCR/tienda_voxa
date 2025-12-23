@@ -15,6 +15,7 @@ const createProductSchema = z.object({
   images: z.array(z.string().url("URL de imagen inválida")).default([]),
   isActive: z.boolean().default(true),
   isSoldOut: z.boolean().default(false),
+  categoryId: z.string().min(1, "La categoría es requerida"),
 })
 
 // GET: Listar todos los productos (admin)
@@ -88,6 +89,25 @@ export async function POST(request: Request) {
       return !!existing
     })
 
+    // Verificar que la categoría existe y está activa
+    const category = await prisma.category.findUnique({
+      where: { id: validatedData.categoryId },
+    })
+
+    if (!category) {
+      return NextResponse.json(
+        { error: "Categoría no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    if (!category.isActive) {
+      return NextResponse.json(
+        { error: "No se puede asignar producto a una categoría inactiva" },
+        { status: 400 }
+      )
+    }
+
     // Crear producto
     const product = await prisma.product.create({
       data: {
@@ -99,6 +119,7 @@ export async function POST(request: Request) {
         images: validatedData.images,
         isActive: validatedData.isActive,
         isSoldOut: validatedData.isSoldOut,
+        categoryId: validatedData.categoryId,
       },
     })
 

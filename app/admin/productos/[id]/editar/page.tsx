@@ -20,6 +20,12 @@ interface Product {
   images: string[]
   isActive: boolean
   isSoldOut: boolean
+  categoryId: string
+  category?: {
+    id: string
+    name: string
+    parentId: string | null
+  }
 }
 
 export default function EditarProductoPage() {
@@ -39,11 +45,40 @@ export default function EditarProductoPage() {
   const [uploadingImages, setUploadingImages] = useState<{ [key: number]: boolean }>({})
   const [isActive, setIsActive] = useState(true)
   const [isSoldOut, setIsSoldOut] = useState(false)
+  
+  // Categorías
+  const [categorias, setCategorias] = useState<{
+    principales: Array<{ id: string; name: string }>
+    subcategorias: Array<{ id: string; name: string; parentId: string }>
+  }>({ principales: [], subcategorias: [] })
+  const [categoriaPrincipalId, setCategoriaPrincipalId] = useState("")
+  const [subcategoriaId, setSubcategoriaId] = useState("")
+  const [loadingCategorias, setLoadingCategorias] = useState(true)
 
   useEffect(() => {
+    fetchCategorias()
     fetchProduct()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  const fetchCategorias = async () => {
+    try {
+      const response = await fetch("/api/admin/categorias/select")
+      if (response.ok) {
+        const data = await response.json()
+        setCategorias(data)
+      }
+    } catch (err) {
+      console.error("Error cargando categorías:", err)
+    } finally {
+      setLoadingCategorias(false)
+    }
+  }
+
+  // Filtrar subcategorías según categoría principal seleccionada
+  const subcategoriasFiltradas = categoriaPrincipalId
+    ? categorias.subcategorias.filter((sub) => sub.parentId === categoriaPrincipalId)
+    : []
 
   const fetchProduct = async () => {
     try {
@@ -65,6 +100,32 @@ export default function EditarProductoPage() {
       setImages(data.images || [])
       setIsActive(data.isActive)
       setIsSoldOut(data.isSoldOut)
+      
+      // Determinar categoría principal y subcategoría
+      if (data.category) {
+        if (data.category.parentId) {
+          // Es una subcategoría
+          setCategoriaPrincipalId(data.category.parentId)
+          setSubcategoriaId(data.categoryId)
+        } else {
+          // Es una categoría principal
+          setCategoriaPrincipalId(data.categoryId)
+          setSubcategoriaId("")
+        }
+      } else {
+        // Cargar categoría desde la base de datos
+        const categoryResponse = await fetch(`/api/admin/categorias/${data.categoryId}`)
+        if (categoryResponse.ok) {
+          const categoryData = await categoryResponse.json()
+          if (categoryData.parentId) {
+            setCategoriaPrincipalId(categoryData.parentId)
+            setSubcategoriaId(data.categoryId)
+          } else {
+            setCategoriaPrincipalId(data.categoryId)
+            setSubcategoriaId("")
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido")
     } finally {
@@ -161,6 +222,16 @@ export default function EditarProductoPage() {
         return
       }
 
+      // Validar categoría
+      if (!categoriaPrincipalId) {
+        setError("Debes seleccionar una categoría")
+        setSaving(false)
+        return
+      }
+
+      // Determinar categoryId: si hay subcategoría, usar esa, sino usar categoría principal
+      const categoryId = subcategoriaId || categoriaPrincipalId
+
       const priceCents = Math.round(priceValue * 100)
 
       const response = await fetch(`/api/admin/productos/${id}`, {
@@ -173,6 +244,7 @@ export default function EditarProductoPage() {
           images,
           isActive,
           isSoldOut,
+          categoryId,
         }),
       })
 
@@ -254,6 +326,47 @@ export default function EditarProductoPage() {
                 rows={4}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoriaPrincipal">Categoría Principal *</Label>
+              <select
+                id="categoriaPrincipal"
+                value={categoriaPrincipalId}
+                onChange={(e) => {
+                  setCategoriaPrincipalId(e.target.value)
+                  setSubcategoriaId("") // Resetear subcategoría al cambiar principal
+                }}
+                required
+                disabled={loadingCategorias}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Selecciona una categoría...</option>
+                {categorias.principales.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {categoriaPrincipalId && subcategoriasFiltradas.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="subcategoria">Subcategoría (Opcional)</Label>
+                <select
+                  id="subcategoria"
+                  value={subcategoriaId}
+                  onChange={(e) => setSubcategoriaId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Ninguna (usar categoría principal)</option>
+                  {subcategoriasFiltradas.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="price">Precio (MXN) *</Label>

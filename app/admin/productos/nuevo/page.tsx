@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,38 @@ export default function NuevoProductoPage() {
   const [uploadingImages, setUploadingImages] = useState<{ [key: number]: boolean }>({})
   const [isActive, setIsActive] = useState(true)
   const [isSoldOut, setIsSoldOut] = useState(false)
+  
+  // Categorías
+  const [categorias, setCategorias] = useState<{
+    principales: Array<{ id: string; name: string }>
+    subcategorias: Array<{ id: string; name: string; parentId: string }>
+  }>({ principales: [], subcategorias: [] })
+  const [categoriaPrincipalId, setCategoriaPrincipalId] = useState("")
+  const [subcategoriaId, setSubcategoriaId] = useState("")
+  const [loadingCategorias, setLoadingCategorias] = useState(true)
+
+  useEffect(() => {
+    fetchCategorias()
+  }, [])
+
+  const fetchCategorias = async () => {
+    try {
+      const response = await fetch("/api/admin/categorias/select")
+      if (response.ok) {
+        const data = await response.json()
+        setCategorias(data)
+      }
+    } catch (err) {
+      console.error("Error cargando categorías:", err)
+    } finally {
+      setLoadingCategorias(false)
+    }
+  }
+
+  // Filtrar subcategorías según categoría principal seleccionada
+  const subcategoriasFiltradas = categoriaPrincipalId
+    ? categorias.subcategorias.filter((sub) => sub.parentId === categoriaPrincipalId)
+    : []
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -113,6 +145,16 @@ export default function NuevoProductoPage() {
         return
       }
 
+      // Validar categoría
+      if (!categoriaPrincipalId) {
+        setError("Debes seleccionar una categoría")
+        setLoading(false)
+        return
+      }
+
+      // Determinar categoryId: si hay subcategoría, usar esa, sino usar categoría principal
+      const categoryId = subcategoriaId || categoriaPrincipalId
+
       const priceCents = Math.round(priceValue * 100) // Convertir a centavos
 
       const response = await fetch("/api/admin/productos", {
@@ -125,6 +167,7 @@ export default function NuevoProductoPage() {
           images,
           isActive,
           isSoldOut,
+          categoryId,
         }),
       })
 
@@ -188,6 +231,47 @@ export default function NuevoProductoPage() {
                 placeholder="Describe el producto..."
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoriaPrincipal">Categoría Principal *</Label>
+              <select
+                id="categoriaPrincipal"
+                value={categoriaPrincipalId}
+                onChange={(e) => {
+                  setCategoriaPrincipalId(e.target.value)
+                  setSubcategoriaId("") // Resetear subcategoría al cambiar principal
+                }}
+                required
+                disabled={loadingCategorias}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Selecciona una categoría...</option>
+                {categorias.principales.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {categoriaPrincipalId && subcategoriasFiltradas.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="subcategoria">Subcategoría (Opcional)</Label>
+                <select
+                  id="subcategoria"
+                  value={subcategoriaId}
+                  onChange={(e) => setSubcategoriaId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Ninguna (usar categoría principal)</option>
+                  {subcategoriasFiltradas.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="price">Precio (MXN) *</Label>
