@@ -1,7 +1,7 @@
 -- SQL para crear tabla categories y agregar categoryId a products
 -- Ejecuta este SQL en Neon SQL Editor
 
--- 1. Crear tabla categories
+-- 1. Crear tabla categories (solo si no existe)
 CREATE TABLE IF NOT EXISTS "categories" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -15,16 +15,40 @@ CREATE TABLE IF NOT EXISTS "categories" (
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
 
--- 2. Crear índice único para slug
-CREATE UNIQUE INDEX IF NOT EXISTS "categories_slug_key" ON "categories"("slug");
+-- 2. Crear índice único para slug (solo si no existe)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE tablename = 'categories' AND indexname = 'categories_slug_key'
+    ) THEN
+        CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
+    END IF;
+END $$;
 
--- 3. Crear índice para parent_id (para búsquedas de subcategorías)
-CREATE INDEX IF NOT EXISTS "categories_parent_id_idx" ON "categories"("parent_id");
+-- 3. Crear índice para parent_id (solo si no existe)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE tablename = 'categories' AND indexname = 'categories_parent_id_idx'
+    ) THEN
+        CREATE INDEX "categories_parent_id_idx" ON "categories"("parent_id");
+    END IF;
+END $$;
 
--- 4. Crear foreign key para self-reference (parent_id -> categories.id)
-ALTER TABLE "categories" 
-    ADD CONSTRAINT "categories_parent_id_fkey" 
-    FOREIGN KEY ("parent_id") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- 4. Crear foreign key para self-reference (solo si no existe)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'categories_parent_id_fkey'
+    ) THEN
+        ALTER TABLE "categories" 
+        ADD CONSTRAINT "categories_parent_id_fkey" 
+        FOREIGN KEY ("parent_id") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- 5. Agregar columna category_id a products (si no existe)
 -- Primero verificar si existe y agregar si no
@@ -38,17 +62,29 @@ BEGIN
     END IF;
 END $$;
 
--- 6. Crear índice para category_id en products
-CREATE INDEX IF NOT EXISTS "products_category_id_idx" ON "products"("category_id");
+-- 6. Crear índice para category_id en products (solo si no existe)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE tablename = 'products' AND indexname = 'products_category_id_idx'
+    ) THEN
+        CREATE INDEX "products_category_id_idx" ON "products"("category_id");
+    END IF;
+END $$;
 
--- 7. Crear foreign key de products.category_id -> categories.id
--- Primero eliminar constraint si existe para evitar errores
-ALTER TABLE "products" 
-    DROP CONSTRAINT IF EXISTS "products_category_id_fkey";
-
-ALTER TABLE "products" 
-    ADD CONSTRAINT "products_category_id_fkey" 
-    FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- 7. Crear foreign key de products.category_id -> categories.id (solo si no existe)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'products_category_id_fkey'
+    ) THEN
+        ALTER TABLE "products" 
+        ADD CONSTRAINT "products_category_id_fkey" 
+        FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- 8. Crear categoría por defecto "Todo" (si no existe)
 INSERT INTO "categories" ("id", "name", "slug", "is_active", "created_at", "updated_at")
