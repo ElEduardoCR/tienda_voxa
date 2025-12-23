@@ -50,22 +50,22 @@ ALTER TABLE "products"
     ADD CONSTRAINT "products_category_id_fkey" 
     FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- 8. Crear categoría por defecto "General" (si no existe)
+-- 8. Crear categoría por defecto "Todo" (si no existe)
 INSERT INTO "categories" ("id", "name", "slug", "is_active", "created_at", "updated_at")
 SELECT 
     gen_random_uuid()::TEXT as "id",
-    'General' as "name",
-    'general' as "slug",
+    'Todo' as "name",
+    'todo' as "slug",
     true as "is_active",
     NOW() as "created_at",
     NOW() as "updated_at"
 WHERE NOT EXISTS (
-    SELECT 1 FROM "categories" WHERE "slug" = 'general'
+    SELECT 1 FROM "categories" WHERE "slug" = 'todo'
 );
 
--- 9. Actualizar productos existentes para asignarles la categoría "General"
+-- 9. Actualizar productos existentes para asignarles la categoría "Todo"
 UPDATE "products" 
-SET "category_id" = (SELECT "id" FROM "categories" WHERE "slug" = 'general' LIMIT 1)
+SET "category_id" = (SELECT "id" FROM "categories" WHERE "slug" = 'todo' LIMIT 1)
 WHERE "category_id" IS NULL;
 
 -- 10. Hacer category_id obligatorio (descomenta solo después de asegurar que todos los productos tienen categoría)

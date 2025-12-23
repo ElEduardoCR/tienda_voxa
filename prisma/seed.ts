@@ -36,11 +36,11 @@ async function main() {
   })
   console.log('✅ Usuario de prueba creado:', testUser.email)
 
-  // Crear categoría por defecto
+  // Crear categoría por defecto "Todo"
   const categoriaDefault = await prisma.category.create({
     data: {
-      name: "General",
-      slug: "general",
+      name: "Todo",
+      slug: "todo",
       isActive: true,
     },
   })
