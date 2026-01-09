@@ -49,6 +49,15 @@ export async function GET(request: Request) {
         paymentStatus: true,
         totalCents: true,
         createdAt: true,
+        items: {
+          select: {
+            id: true,
+            productName: true,
+            quantity: true,
+            priceCents: true,
+            totalCents: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

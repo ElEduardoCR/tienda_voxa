@@ -7,10 +7,26 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle2, Home, Package } from "lucide-react"
 import Link from "next/link"
 
+interface Order {
+  id: string
+  orderNumber: string
+  status: string
+  paymentStatus: string
+  totalCents: number
+  createdAt: string
+  items: Array<{
+    id: string
+    productName: string
+    quantity: number
+    priceCents: number
+    totalCents: number
+  }>
+}
+
 function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [orderNumber, setOrderNumber] = useState<string | null>(null)
+  const [order, setOrder] = useState<Order | null>(null)
   const [paymentId, setPaymentId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -34,8 +50,16 @@ function SuccessContent() {
       const response = await fetch(`/api/checkout/get-order?paymentId=${mpPaymentId}`)
       if (response.ok) {
         const data = await response.json()
-        if (data.orderNumber) {
-          setOrderNumber(data.orderNumber)
+        if (data.orderId) {
+          // Obtener detalles completos de la orden
+          const orderResponse = await fetch(`/api/user/orders`)
+          if (orderResponse.ok) {
+            const orders = await orderResponse.json()
+            const foundOrder = orders.find((o: Order) => o.id === data.orderId)
+            if (foundOrder) {
+              setOrder(foundOrder)
+            }
+          }
         }
       }
     } catch (err) {
@@ -71,10 +95,33 @@ function SuccessContent() {
 
               {loading ? (
                 <p className="text-sm text-muted-foreground">Cargando información del pedido...</p>
-              ) : orderNumber ? (
-                <div className="bg-muted rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Número de Orden</p>
-                  <p className="text-2xl font-bold">{orderNumber}</p>
+              ) : order ? (
+                <div className="space-y-4 w-full max-w-md mx-auto">
+                  <div className="bg-muted rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground mb-1">Número de Orden</p>
+                    <p className="text-2xl font-bold">{order.orderNumber}</p>
+                  </div>
+                  
+                  <div className="bg-muted rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground mb-2">Total Pagado</p>
+                    <p className="text-xl font-bold">
+                      ${(order.totalCents / 100).toLocaleString('es-MX', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="bg-muted rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground mb-2">Productos</p>
+                    <ul className="space-y-1">
+                      {order.items.map((item) => (
+                        <li key={item.id} className="text-sm">
+                          {item.productName} x{item.quantity}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               ) : paymentId ? (
                 <div className="bg-muted rounded-lg p-4">

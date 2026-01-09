@@ -296,9 +296,11 @@ export default function CuentaPage() {
             <CardDescription>Historial de tus compras</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">
-              La integración con Odoo estará disponible próximamente.
-            </p>
+            <Link href="/cuenta/pedidos">
+              <Button variant="outline" className="w-full" style={{ borderColor: '#014495', color: '#014495' }}>
+                Ver Historial de Compras
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

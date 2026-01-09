@@ -171,6 +171,12 @@ model Order {
   // Metadata
   metadata          String?     @db.Text // JSON con detalles adicionales
   
+  // Datos de envío
+  shippingStatus    String      @default("pending") @map("shipping_status") // pending, shipped, delivered
+  trackingNumber    String?     @map("tracking_number") // Clave de rastreo
+  shippingCarrier   String?     @map("shipping_carrier") // Operadora de envío (DHL, FedEx, Estafeta, etc.)
+  shippedAt         DateTime?   @map("shipped_at") // Fecha de envío
+  
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
   paidAt            DateTime?   @map("paid_at")

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Package, FolderTree, ShoppingBag, BarChart3 } from "lucide-react"
+import { Package, FolderTree, ShoppingBag, BarChart3, Receipt } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -29,6 +29,31 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: '#014495', color: 'white' }}>
+                <Receipt className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Ventas</CardTitle>
+                <CardDescription>Gestión de pedidos y envíos</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/ventas">
+              <Button 
+                className="w-full hover:opacity-90" 
+                style={{ backgroundColor: '#014495', color: 'white' }}
+              >
+                <Receipt className="mr-2 h-4 w-4" />
+                Ver Ventas
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-3">
