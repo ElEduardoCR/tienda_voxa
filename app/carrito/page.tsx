@@ -168,11 +168,17 @@ export default function CarritoPage() {
                     </span>
                   </div>
                 </div>
-                <Button className="w-full" size="lg" disabled>
-                  Pagar (Próximamente)
-                </Button>
+                <Link href="/checkout" className="w-full">
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    style={{ backgroundColor: '#014495', color: 'white' }}
+                  >
+                    Proceder al Pago
+                  </Button>
+                </Link>
                 <p className="text-xs text-center text-muted-foreground">
-                  La integración de pagos estará disponible próximamente
+                  Serás redirigido a una página segura para completar el pago
                 </p>
               </CardContent>
             </Card>

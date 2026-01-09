@@ -25,6 +25,7 @@ model User {
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
   deliveryAddresses DeliveryAddress[]
+  orders        Order[]
 
   @@map("users")
 }
@@ -144,5 +145,57 @@ model DeliveryAddress {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("delivery_addresses")
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  orderNumber       String      @unique @map("order_number") // Número de orden único
+  userId            String      @map("user_id")
+  status            String      @default("pending") // pending, approved, rejected, cancelled, refunded
+  paymentStatus     String      @default("pending") @map("payment_status") // pending, approved, rejected, cancelled, refunded
+  mercadoPagoId     String?     @map("mercado_pago_id") // ID de la preferencia o pago en MP
+  mercadoPagoStatus String?     @map("mercado_pago_status") // Estado desde webhook de MP
+  totalCents        Int         @map("total_cents") // Total en centavos
+  currency          String      @default("MXN")
+  
+  // Datos de envío
+  deliveryAddressId String?     @map("delivery_address_id")
+  recipientName     String
+  recipientPhone    String?
+  street            String
+  city              String
+  state             String
+  postalCode        String      @map("postal_code")
+  country           String      @default("México")
+  
+  // Metadata
+  metadata          String?     @db.Text // JSON con detalles adicionales
+  
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  paidAt            DateTime?   @map("paid_at")
+  cancelledAt       DateTime?   @map("cancelled_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String  @map("order_id")
+  productId   String  @map("product_id")
+  productSku  String  @map("product_sku")
+  productName String  @map("product_name")
+  quantity    Int
+  priceCents  Int     @map("price_cents") // Precio unitario en centavos al momento de la compra
+  totalCents  Int     @map("total_cents") // Precio total (quantity * priceCents)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
 }
 
