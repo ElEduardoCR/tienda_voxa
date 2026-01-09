@@ -5,11 +5,12 @@ import { z } from "zod"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-// Schema de validación para actualizar tracking
+// Schema de validación para actualizar tracking o cancelar orden
 const updateTrackingSchema = z.object({
   trackingNumber: z.string().min(1, "La clave de rastreo es requerida").optional(),
   shippingCarrier: z.string().min(1, "La operadora es requerida").optional(),
   shippingStatus: z.enum(["pending", "shipped", "delivered"]).optional(),
+  status: z.enum(["pending", "approved", "rejected", "cancelled", "refunded"]).optional(),
 })
 
 /**
@@ -60,6 +61,22 @@ export async function PUT(
       // Si se marca como enviado, establecer fecha de envío
       if (validatedData.shippingStatus === "shipped" && !order.shippedAt) {
         updateData.shippedAt = new Date()
+      }
+    }
+
+    if (validatedData.status !== undefined) {
+      updateData.status = validatedData.status
+      updateData.paymentStatus = validatedData.status
+      
+      // Si se cancela, establecer fecha de cancelación
+      if (validatedData.status === "cancelled" && !order.cancelledAt) {
+        updateData.cancelledAt = new Date()
+      }
+
+      // Si se reembolsa, marcar como refunded
+      if (validatedData.status === "refunded") {
+        updateData.status = "refunded"
+        updateData.paymentStatus = "refunded"
       }
     }
 

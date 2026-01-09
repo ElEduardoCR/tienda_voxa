@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Package, Truck, CheckCircle2, Clock, Search } from "lucide-react"
+import { Package, Truck, CheckCircle2, Clock, Search, XCircle, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
 interface OrderItem {
@@ -29,12 +29,15 @@ interface Order {
   trackingNumber: string | null
   shippingCarrier: string | null
   shippedAt: string | null
+  mercadoPagoId: string | null
+  mercadoPagoStatus: string | null
   createdAt: string
   recipientName: string
   street: string
   city: string
   state: string
   postalCode: string
+  cancelledAt: string | null
   user: {
     id: string
     name: string | null
@@ -133,6 +136,31 @@ export default function VentasPage() {
       setError(err instanceof Error ? err.message : "Error desconocido")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm("¿Estás seguro de que quieres cancelar esta orden? Deberás procesar el reembolso manualmente en Mercado Pago.")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/ventas/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "cancelled",
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Error al cancelar la orden")
+      }
+
+      await fetchOrders()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido")
     }
   }
 
@@ -259,7 +287,7 @@ export default function VentasPage() {
             <Card key={order.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="flex-1">
                     <CardTitle className="text-xl">Orden {order.orderNumber}</CardTitle>
                     <CardDescription>
                       {new Date(order.createdAt).toLocaleDateString("es-MX", {
@@ -270,8 +298,36 @@ export default function VentasPage() {
                         minute: "2-digit",
                       })}
                     </CardDescription>
+                    {order.mercadoPagoId && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground">
+                          ID Mercado Pago: <span className="font-mono">{order.mercadoPagoId}</span>
+                        </p>
+                        {order.mercadoPagoStatus && (
+                          <p className="text-xs text-muted-foreground">
+                            Estado MP: <span className="font-semibold">{order.mercadoPagoStatus}</span>
+                          </p>
+                        )}
+                        <a
+                          href={`https://www.mercadopago.com.mx/activities/payments/${order.mercadoPagoId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-1"
+                        >
+                          Ver en Mercado Pago <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  {getShippingStatusBadge(order.shippingStatus)}
+                  <div className="flex flex-col gap-2 items-end">
+                    {getShippingStatusBadge(order.shippingStatus)}
+                    {order.status === "cancelled" && (
+                      <Badge variant="destructive">
+                        <XCircle className="mr-1 h-3 w-3" />
+                        Cancelada
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -327,85 +383,130 @@ export default function VentasPage() {
                   </div>
                 </div>
 
-                {/* Información de envío */}
-                {editingOrder?.id === order.id ? (
-                  <div className="bg-muted rounded-lg p-4 space-y-4">
-                    <h3 className="font-semibold">Agregar Información de Envío</h3>
-                    <div className="space-y-2">
-                      <Label htmlFor="carrier">Operadora de Envío *</Label>
-                      <Input
-                        id="carrier"
-                        value={shippingCarrier}
-                        onChange={(e) => setShippingCarrier(e.target.value)}
-                        placeholder="Ej: DHL, FedEx, Estafeta, Correos de México"
-                        required
-                      />
+                {/* Acciones de administración */}
+                <div className="border-t pt-4 space-y-3">
+                  {/* Información de envío */}
+                  {editingOrder?.id === order.id ? (
+                    <div className="bg-muted rounded-lg p-4 space-y-4">
+                      <h3 className="font-semibold">Agregar Información de Envío</h3>
+                      <div className="space-y-2">
+                        <Label htmlFor="carrier">Operadora de Envío *</Label>
+                        <Input
+                          id="carrier"
+                          value={shippingCarrier}
+                          onChange={(e) => setShippingCarrier(e.target.value)}
+                          placeholder="Ej: DHL, FedEx, Estafeta, Correos de México"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tracking">Clave de Rastreo *</Label>
+                        <Input
+                          id="tracking"
+                          value={trackingNumber}
+                          onChange={(e) => setTrackingNumber(e.target.value)}
+                          placeholder="Ej: 1234567890"
+                          required
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleSaveTracking}
+                          disabled={saving}
+                          style={{ backgroundColor: '#014495', color: 'white' }}
+                        >
+                          {saving ? "Guardando..." : "Marcar como Enviado"}
+                        </Button>
+                        <Button variant="outline" onClick={handleCancelEdit} disabled={saving}>
+                          Cancelar
+                        </Button>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tracking">Clave de Rastreo *</Label>
-                      <Input
-                        id="tracking"
-                        value={trackingNumber}
-                        onChange={(e) => setTrackingNumber(e.target.value)}
-                        placeholder="Ej: 1234567890"
-                        required
-                      />
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {order.shippingStatus === "pending" && order.status !== "cancelled" && (
+                        <Button
+                          onClick={() => handleEditTracking(order)}
+                          style={{ backgroundColor: '#014495', color: 'white' }}
+                        >
+                          <Truck className="mr-2 h-4 w-4" />
+                          Agregar Información de Envío
+                        </Button>
+                      )}
+                      
+                      {order.status !== "cancelled" && order.status !== "refunded" && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleCancelOrder(order.id)}
+                          className="border-red-500 text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle className="mr-2 h-4 w-4" />
+                          Cancelar Orden
+                        </Button>
+                      )}
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleSaveTracking}
-                        disabled={saving}
-                        style={{ backgroundColor: '#014495', color: 'white' }}
-                      >
-                        {saving ? "Guardando..." : "Marcar como Enviado"}
-                      </Button>
-                      <Button variant="outline" onClick={handleCancelEdit} disabled={saving}>
-                        Cancelar
-                      </Button>
+                  )}
+
+                  {/* Información de envío completa */}
+                  {order.shippingStatus === "shipped" && order.trackingNumber && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Truck className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-blue-900 mb-2">Información de Envío</h4>
+                          <div className="space-y-1 text-sm">
+                            {order.shippingCarrier && (
+                              <p>
+                                <span className="font-semibold">Operadora:</span> {order.shippingCarrier}
+                              </p>
+                            )}
+                            {order.trackingNumber && (
+                              <p>
+                                <span className="font-semibold">Clave de Rastreo:</span>{' '}
+                                <span className="font-mono bg-white px-2 py-1 rounded">{order.trackingNumber}</span>
+                              </p>
+                            )}
+                            {order.shippedAt && (
+                              <p className="text-muted-foreground">
+                                Enviado el {new Date(order.shippedAt).toLocaleDateString("es-MX", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ) : order.shippingStatus === "pending" ? (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleEditTracking(order)}
-                      style={{ backgroundColor: '#014495', color: 'white' }}
-                    >
-                      <Truck className="mr-2 h-4 w-4" />
-                      Agregar Información de Envío
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <Truck className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-blue-900 mb-2">Información de Envío</h4>
-                        <div className="space-y-1 text-sm">
-                          {order.shippingCarrier && (
-                            <p>
-                              <span className="font-semibold">Operadora:</span> {order.shippingCarrier}
-                            </p>
-                          )}
-                          {order.trackingNumber && (
-                            <p>
-                              <span className="font-semibold">Clave de Rastreo:</span>{' '}
-                              <span className="font-mono bg-white px-2 py-1 rounded">{order.trackingNumber}</span>
-                            </p>
-                          )}
-                          {order.shippedAt && (
-                            <p className="text-muted-foreground">
-                              Enviado el {new Date(order.shippedAt).toLocaleDateString("es-MX", {
+                  )}
+
+                  {/* Información de cancelación */}
+                  {order.status === "cancelled" && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-red-900 mb-2">Orden Cancelada</h4>
+                          <p className="text-sm text-red-800 mb-2">
+                            Esta orden ha sido cancelada. Asegúrate de procesar el reembolso en Mercado Pago si el pago ya fue aprobado.
+                          </p>
+                          {order.cancelledAt && (
+                            <p className="text-xs text-red-700">
+                              Cancelada el {new Date(order.cancelledAt).toLocaleDateString("es-MX", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
                               })}
                             </p>
                           )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

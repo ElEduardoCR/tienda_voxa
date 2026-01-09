@@ -45,6 +45,38 @@ export async function GET(request: Request) {
           },
         },
       },
+      select: {
+        id: true,
+        orderNumber: true,
+        status: true,
+        paymentStatus: true,
+        totalCents: true,
+        shippingStatus: true,
+        trackingNumber: true,
+        shippingCarrier: true,
+        shippedAt: true,
+        mercadoPagoId: true,
+        mercadoPagoStatus: true,
+        createdAt: true,
+        cancelledAt: true,
+        recipientName: true,
+        street: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        items: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
