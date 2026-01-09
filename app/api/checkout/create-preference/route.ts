@@ -132,13 +132,15 @@ export async function POST(request: Request) {
     })
 
     // Preparar items para Mercado Pago
+    // NOTA: Mercado Pago espera el precio en la moneda base (pesos), NO en centavos
+    // El item.price ya viene en pesos desde el carrito (convertido desde priceCents en el frontend)
     const mpItems = items.map((item: any) => ({
       id: item.id,
       title: item.name,
       description: item.name.substring(0, 200), // MP limita a 255 caracteres
       quantity: item.quantity,
       currency_id: "MXN",
-      unit_price: Number((item.price * 100).toFixed(0)), // Convertir a centavos
+      unit_price: Number(item.price.toFixed(2)), // Precio en pesos (Mercado Pago acepta decimales)
     }))
 
     // URL base de la aplicación
