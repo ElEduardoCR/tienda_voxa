@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState, Suspense } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -30,9 +30,8 @@ interface DeliveryAddress {
   isDefault: boolean
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [cart, setCart] = useState<CartItem[]>([])
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([])
   const [selectedAddress, setSelectedAddress] = useState<DeliveryAddress | null>(null)
@@ -327,6 +326,31 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Link href="/carrito">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver al Carrito
+            </Button>
+          </Link>
+        </div>
+        <h1 className="text-4xl font-bold mb-8">Checkout</h1>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Cargando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }
 
