@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Package, Truck, CheckCircle2, Clock, Search, XCircle, ExternalLink } from "lucide-react"
+import { Package, Truck, CheckCircle2, Clock, Search, XCircle, ExternalLink, RefreshCw } from "lucide-react"
 import Link from "next/link"
 
 interface OrderItem {
@@ -60,6 +60,7 @@ export default function VentasPage() {
   const [trackingNumber, setTrackingNumber] = useState("")
   const [shippingCarrier, setShippingCarrier] = useState("")
   const [saving, setSaving] = useState(false)
+  const [refreshingOrderId, setRefreshingOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchOrders()
@@ -162,6 +163,32 @@ export default function VentasPage() {
       await fetchOrders()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido")
+    }
+  }
+
+  const handleRefreshOrder = async (orderId: string) => {
+    setRefreshingOrderId(orderId)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/checkout/verify-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Error al verificar el pago")
+      }
+
+      // Esperar un momento y recargar las órdenes
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await fetchOrders()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al verificar el pago")
+    } finally {
+      setRefreshingOrderId(null)
     }
   }
 
@@ -443,6 +470,19 @@ export default function VentasPage() {
                         >
                           <Truck className="mr-2 h-4 w-4" />
                           Agregar Información de Envío
+                        </Button>
+                      )}
+                      
+                      {order.paymentStatus === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRefreshOrder(order.id)}
+                          disabled={refreshingOrderId === order.id}
+                          style={{ borderColor: '#014495', color: '#014495' }}
+                        >
+                          <RefreshCw className={`mr-2 h-4 w-4 ${refreshingOrderId === order.id ? 'animate-spin' : ''}`} />
+                          {refreshingOrderId === order.id ? "Verificando..." : "Verificar Pago"}
                         </Button>
                       )}
                       

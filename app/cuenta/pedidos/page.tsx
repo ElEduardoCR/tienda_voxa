@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Package, Truck, CheckCircle2, Clock, XCircle } from "lucide-react"
+import { Package, Truck, CheckCircle2, Clock, XCircle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 
 interface OrderItem {
@@ -37,6 +37,7 @@ function PedidosContent() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshingOrderId, setRefreshingOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchOrders()
@@ -59,6 +60,32 @@ function PedidosContent() {
       setError(err instanceof Error ? err.message : "Error desconocido")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRefreshOrder = async (orderId: string) => {
+    setRefreshingOrderId(orderId)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/checkout/verify-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Error al verificar el pago")
+      }
+
+      // Esperar un momento y recargar las órdenes
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await fetchOrders()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al verificar el pago")
+    } finally {
+      setRefreshingOrderId(null)
     }
   }
 
@@ -178,9 +205,23 @@ function PedidosContent() {
                       })}
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
-                    {getStatusBadge(order.paymentStatus)}
-                    {getShippingStatusBadge(order.shippingStatus)}
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex gap-2">
+                      {getStatusBadge(order.paymentStatus)}
+                      {getShippingStatusBadge(order.shippingStatus)}
+                    </div>
+                    {order.paymentStatus === "pending" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRefreshOrder(order.id)}
+                        disabled={refreshingOrderId === order.id}
+                        style={{ borderColor: '#014495', color: '#014495' }}
+                      >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${refreshingOrderId === order.id ? 'animate-spin' : ''}`} />
+                        {refreshingOrderId === order.id ? "Verificando..." : "Verificar Pago"}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardHeader>
