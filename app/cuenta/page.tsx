@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, MapPin, Check } from "lucide-react"
+import { estadosMexico, getCiudadesPorEstado, getEstadoName } from "@/lib/mexico-data"
 
 interface User {
   id: string
@@ -48,10 +49,10 @@ export default function CuentaPage() {
     city: "",
     state: "",
     postalCode: "",
-    country: "México",
     phone: "",
     isDefault: false,
   })
+  const [ciudadesDisponibles, setCiudadesDisponibles] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -94,17 +95,22 @@ export default function CuentaPage() {
   const handleOpenForm = (address?: DeliveryAddress) => {
     if (address) {
       setEditingAddress(address)
+      // Buscar el estado ID basado en el nombre almacenado en DB
+      const estadoEncontrado = estadosMexico.find(e => e.name === address.state || e.id === address.state)
+      const estadoId = estadoEncontrado?.id || ""
+      const ciudades = estadoId ? getCiudadesPorEstado(estadoId) : []
+      
       setFormData({
         name: address.name,
         recipient: address.recipient,
         street: address.street,
         city: address.city,
-        state: address.state,
+        state: estadoId,
         postalCode: address.postalCode,
-        country: address.country,
         phone: address.phone || "",
         isDefault: address.isDefault,
       })
+      setCiudadesDisponibles(ciudades)
     } else {
       setEditingAddress(null)
       setFormData({
@@ -114,10 +120,10 @@ export default function CuentaPage() {
         city: "",
         state: "",
         postalCode: "",
-        country: "México",
         phone: "",
         isDefault: addresses.length === 0, // Primera dirección es predeterminada
       })
+      setCiudadesDisponibles([])
     }
     setShowForm(true)
   }
@@ -132,10 +138,20 @@ export default function CuentaPage() {
       city: "",
       state: "",
       postalCode: "",
-      country: "México",
       phone: "",
       isDefault: false,
     })
+    setCiudadesDisponibles([])
+  }
+
+  const handleEstadoChange = (estadoId: string) => {
+    const ciudades = getCiudadesPorEstado(estadoId)
+    setFormData({
+      ...formData,
+      state: estadoId,
+      city: "", // Resetear ciudad al cambiar estado
+    })
+    setCiudadesDisponibles(ciudades)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,13 +166,18 @@ export default function CuentaPage() {
       
       const method = editingAddress ? "PUT" : "POST"
 
+      // Convertir estado ID a nombre para guardar
+      const estadoName = getEstadoName(formData.state)
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          state: estadoName,
           postalCode: formData.postalCode,
           phone: formData.phone || null,
+          country: "México", // Siempre México por defecto
         }),
       })
 
@@ -445,76 +466,79 @@ export default function CuentaPage() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="state">Estado *</Label>
+                    <select
+                      id="state"
+                      value={formData.state}
+                      onChange={(e) => handleEstadoChange(e.target.value)}
+                      required
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">Selecciona un estado</option>
+                      {estadosMexico.map((estado) => (
+                        <option key={estado.id} value={estado.id}>
+                          {estado.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="city">Ciudad *</Label>
-                    <Input
+                    <select
                       id="city"
                       value={formData.city}
                       onChange={(e) =>
                         setFormData({ ...formData, city: e.target.value })
                       }
-                      placeholder="Ciudad"
                       required
-                      maxLength={100}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="state">Estado *</Label>
-                    <Input
-                      id="state"
-                      value={formData.state}
-                      onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
-                      }
-                      placeholder="Estado"
-                      required
-                      maxLength={100}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="postalCode">Código Postal *</Label>
-                    <Input
-                      id="postalCode"
-                      value={formData.postalCode}
-                      onChange={(e) =>
-                        setFormData({ ...formData, postalCode: e.target.value })
-                      }
-                      placeholder="00000"
-                      required
-                      minLength={5}
-                      maxLength={10}
-                    />
+                      disabled={!formData.state || ciudadesDisponibles.length === 0}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">
+                        {!formData.state
+                          ? "Primero selecciona un estado"
+                          : ciudadesDisponibles.length === 0
+                          ? "No hay ciudades disponibles"
+                          : "Selecciona una ciudad"}
+                      </option>
+                      {ciudadesDisponibles.map((ciudad) => (
+                        <option key={ciudad} value={ciudad}>
+                          {ciudad}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="country">País</Label>
-                    <Input
-                      id="country"
-                      value={formData.country}
-                      onChange={(e) =>
-                        setFormData({ ...formData, country: e.target.value })
-                      }
-                      placeholder="País"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">Código Postal *</Label>
+                  <Input
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) =>
+                      setFormData({ ...formData, postalCode: e.target.value })
+                    }
+                    placeholder="00000"
+                    required
+                    minLength={5}
+                    maxLength={10}
+                  />
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      placeholder="10 dígitos"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    placeholder="10 dígitos"
+                  />
                 </div>
 
                 <div className="flex items-center space-x-2">
