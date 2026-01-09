@@ -70,7 +70,7 @@ export default function VentasPage() {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      params.append("status", "approved")
+      params.append("paymentStatus", "approved") // Filtrar por pago aprobado en lugar de status
       if (filterStatus !== "all") {
         params.append("shippingStatus", filterStatus)
       }

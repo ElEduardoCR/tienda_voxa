@@ -37,33 +37,57 @@ function SuccessContent() {
 
     if (paymentIdParam) {
       setPaymentId(paymentIdParam)
-      // Buscar la orden asociada con este pago
-      fetchOrderByPaymentId(paymentIdParam)
+      // Verificar el pago con Mercado Pago y actualizar la orden
+      verifyAndUpdatePayment(paymentIdParam)
     } else {
       setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  const fetchOrderByPaymentId = async (mpPaymentId: string) => {
+  const verifyAndUpdatePayment = async (mpPaymentId: string) => {
     try {
-      const response = await fetch(`/api/checkout/get-order?paymentId=${mpPaymentId}`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.orderId) {
-          // Obtener detalles completos de la orden
-          const orderResponse = await fetch(`/api/user/orders`)
-          if (orderResponse.ok) {
-            const orders = await orderResponse.json()
-            const foundOrder = orders.find((o: Order) => o.id === data.orderId)
-            if (foundOrder) {
-              setOrder(foundOrder)
+      // Primero verificar y actualizar el pago con Mercado Pago
+      const verifyResponse = await fetch(`/api/checkout/verify-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId: mpPaymentId }),
+      })
+
+      if (verifyResponse.ok) {
+        const verifyData = await verifyResponse.json()
+        
+        // Esperar un momento para que se actualice la base de datos
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Obtener detalles completos de la orden actualizada
+        const orderResponse = await fetch(`/api/user/orders`)
+        if (orderResponse.ok) {
+          const orders = await orderResponse.json()
+          const foundOrder = orders.find((o: Order) => o.id === verifyData.orderId)
+          if (foundOrder) {
+            setOrder(foundOrder)
+          }
+        }
+      } else {
+        // Si falla la verificación, intentar obtener la orden de todas formas
+        const response = await fetch(`/api/checkout/get-order?paymentId=${mpPaymentId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.orderId) {
+            const orderResponse = await fetch(`/api/user/orders`)
+            if (orderResponse.ok) {
+              const orders = await orderResponse.json()
+              const foundOrder = orders.find((o: Order) => o.id === data.orderId)
+              if (foundOrder) {
+                setOrder(foundOrder)
+              }
             }
           }
         }
       }
     } catch (err) {
-      console.error("Error fetching order:", err)
+      console.error("Error verificando pago:", err)
     } finally {
       setLoading(false)
     }
