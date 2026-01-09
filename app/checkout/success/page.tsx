@@ -143,7 +143,7 @@ function SuccessContent() {
                       Volver al Inicio
                     </Button>
                   </Link>
-                  <Link href="/cuenta">
+                  <Link href="/cuenta/pedidos">
                     <Button style={{ backgroundColor: '#014495', color: 'white' }}>
                       <Package className="mr-2 h-4 w-4" />
                       Ver Mis Pedidos
