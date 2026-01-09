@@ -501,8 +501,13 @@ export default function VentasPage() {
                         <div className="flex-1">
                           <h4 className="font-semibold text-red-900 mb-2">Orden Cancelada</h4>
                           <p className="text-sm text-red-800 mb-2">
-                            Esta orden ha sido cancelada. Asegúrate de procesar el reembolso en Mercado Pago si el pago ya fue aprobado.
+                            Esta orden ha sido cancelada. Si el pago ya fue aprobado, debes procesar el reembolso manualmente en Mercado Pago.
                           </p>
+                          {order.mercadoPagoPaymentId && (
+                            <p className="text-sm text-red-800 mb-2">
+                              <strong>Referencia para reembolso:</strong> Usa el ID de Pago MP mostrado arriba para buscar el pago en Mercado Pago y procesar el reembolso.
+                            </p>
+                          )}
                           {order.cancelledAt && (
                             <p className="text-xs text-red-700">
                               Cancelada el {new Date(order.cancelledAt).toLocaleDateString("es-MX", {
