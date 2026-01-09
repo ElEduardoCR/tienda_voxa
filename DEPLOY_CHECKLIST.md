@@ -71,3 +71,4 @@ Si encuentras problemas:
 3. **404 en rutas**: Verifica que el build se completó exitosamente
 4. **Dominio no funciona**: Verifica DNS y espera propagación
 
+

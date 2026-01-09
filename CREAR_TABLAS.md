@@ -178,3 +178,4 @@ curl -X POST https://tienda.voxa.mx/api/registro \
 # Debe retornar: {"ok":true}
 ```
 
+

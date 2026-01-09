@@ -26,3 +26,4 @@ export function adminErrorResponse(message: string = "No autorizado") {
   return NextResponse.json({ error: message }, { status: 403 })
 }
 
+

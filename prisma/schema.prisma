@@ -24,6 +24,7 @@ model User {
   sessions      Session[]
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  deliveryAddresses DeliveryAddress[]
 
   @@map("users")
 }
@@ -123,5 +124,25 @@ model Product {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   @@map("products")
+}
+
+model DeliveryAddress {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String   // Nombre de la dirección (ej: "Casa", "Oficina")
+  recipient   String   // Nombre del destinatario
+  street      String   // Calle y número
+  city        String   // Ciudad
+  state       String   // Estado
+  postalCode  String   @map("postal_code") // Código postal
+  country     String   @default("México") // País
+  phone       String?  // Teléfono de contacto
+  isDefault   Boolean  @default(false) @map("is_default") // Dirección predeterminada
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_addresses")
 }
 

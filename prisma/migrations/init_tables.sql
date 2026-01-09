@@ -85,3 +85,4 @@ CREATE TABLE IF NOT EXISTS "products" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "products_sku_key" ON "products"("sku");
 
+

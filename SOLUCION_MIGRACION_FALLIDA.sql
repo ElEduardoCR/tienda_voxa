@@ -33,3 +33,4 @@ WHERE NOT EXISTS (
     WHERE "migration_name" = '20241220000000_add_email_verification'
 );
 
+

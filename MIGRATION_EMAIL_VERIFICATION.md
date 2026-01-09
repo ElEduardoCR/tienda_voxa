@@ -158,3 +158,4 @@ Body: { token, password }
 - `/auth/reset?token=...` - Restablecer contraseña
 - `/auth/login` - Login (ahora valida email verificado)
 
+

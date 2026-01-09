@@ -55,3 +55,4 @@ Las mismas variables deben configurarse en Vercel:
    - `NEXTAUTH_URL` → `https://tienda.voxa.mx`
    - `NEXTAUTH_SECRET` (puede ser el mismo o generar uno nuevo para producción)
 
+

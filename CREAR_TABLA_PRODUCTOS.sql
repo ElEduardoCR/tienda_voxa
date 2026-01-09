@@ -25,3 +25,4 @@ CREATE TABLE "products" (
 CREATE UNIQUE INDEX "products_sku_key" ON "products"("sku");
 CREATE UNIQUE INDEX "products_slug_key" ON "products"("slug");
 
+

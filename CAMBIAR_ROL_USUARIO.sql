@@ -23,3 +23,4 @@ SET "role" = 'USER';
 -- Verificar el cambio
 SELECT "id", "email", "name", "role" FROM "users" WHERE "email" = 'usuario@ejemplo.com';
 
+

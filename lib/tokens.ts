@@ -25,3 +25,4 @@ export function verifyToken(token: string, hash: string): boolean {
   )
 }
 
+

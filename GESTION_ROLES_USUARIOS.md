@@ -252,3 +252,4 @@ WHERE "role" = 'ADMIN';
 - [Prisma - Update Records](https://www.prisma.io/docs/concepts/components/prisma-client/crud#update)
 - [SQL UPDATE Syntax](https://www.postgresql.org/docs/current/sql-update.html)
 
+

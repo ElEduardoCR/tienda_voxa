@@ -75,3 +75,4 @@ Después de ejecutar cualquiera de las opciones anteriores:
 
 La migración usa `IF NOT EXISTS` y `ADD COLUMN IF NOT EXISTS`, por lo que es segura ejecutarla múltiples veces sin causar errores.
 
+

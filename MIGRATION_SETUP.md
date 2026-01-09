@@ -64,3 +64,4 @@ Después del deploy, prueba:
 - `https://tu-dominio.vercel.app/api/health/db`
 - `POST https://tu-dominio.vercel.app/api/registro`
 
+
