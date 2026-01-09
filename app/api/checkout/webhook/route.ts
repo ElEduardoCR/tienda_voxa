@@ -92,6 +92,7 @@ export async function POST(request: Request) {
     // Actualizar la orden
     const updateData: any = {
       mercadoPagoStatus: paymentStatus,
+      mercadoPagoPaymentId: paymentId.toString(), // Guardar el payment_id para reembolsos
       status: orderStatus,
       paymentStatus: orderPaymentStatus,
     }

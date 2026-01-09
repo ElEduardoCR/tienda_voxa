@@ -56,6 +56,7 @@ export async function GET(request: Request) {
         shippingCarrier: true,
         shippedAt: true,
         mercadoPagoId: true,
+        mercadoPagoPaymentId: true,
         mercadoPagoStatus: true,
         createdAt: true,
         cancelledAt: true,

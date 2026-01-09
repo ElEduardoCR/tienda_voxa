@@ -30,6 +30,7 @@ interface Order {
   shippingCarrier: string | null
   shippedAt: string | null
   mercadoPagoId: string | null
+  mercadoPagoPaymentId: string | null
   mercadoPagoStatus: string | null
   createdAt: string
   recipientName: string
@@ -298,24 +299,35 @@ export default function VentasPage() {
                         minute: "2-digit",
                       })}
                     </CardDescription>
-                    {order.mercadoPagoId && (
-                      <div className="mt-2">
-                        <p className="text-xs text-muted-foreground">
-                          ID Mercado Pago: <span className="font-mono">{order.mercadoPagoId}</span>
-                        </p>
+                    {(order.mercadoPagoId || order.mercadoPagoPaymentId) && (
+                      <div className="mt-2 space-y-1">
+                        {order.mercadoPagoPaymentId && (
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              ID de Pago MP: <span className="font-mono bg-muted px-1 py-0.5 rounded">{order.mercadoPagoPaymentId}</span>
+                            </p>
+                            <a
+                              href={`https://www.mercadopago.com.mx/activities/payments/${order.mercadoPagoPaymentId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-1"
+                            >
+                              Ver pago en Mercado Pago <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        )}
+                        {order.mercadoPagoId && !order.mercadoPagoPaymentId && (
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              ID de Preferencia MP: <span className="font-mono bg-muted px-1 py-0.5 rounded">{order.mercadoPagoId}</span>
+                            </p>
+                          </div>
+                        )}
                         {order.mercadoPagoStatus && (
                           <p className="text-xs text-muted-foreground">
                             Estado MP: <span className="font-semibold">{order.mercadoPagoStatus}</span>
                           </p>
                         )}
-                        <a
-                          href={`https://www.mercadopago.com.mx/activities/payments/${order.mercadoPagoId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-1"
-                        >
-                          Ver en Mercado Pago <ExternalLink className="h-3 w-3" />
-                        </a>
                       </div>
                     )}
                   </div>

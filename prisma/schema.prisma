@@ -153,7 +153,8 @@ model Order {
   userId            String      @map("user_id")
   status            String      @default("pending") // pending, approved, rejected, cancelled, refunded
   paymentStatus     String      @default("pending") @map("payment_status") // pending, approved, rejected, cancelled, refunded
-  mercadoPagoId     String?     @map("mercado_pago_id") // ID de la preferencia o pago en MP
+  mercadoPagoId     String?     @map("mercado_pago_id") // ID de la preferencia en MP
+  mercadoPagoPaymentId String?  @map("mercado_pago_payment_id") // ID del pago específico en MP (para reembolsos)
   mercadoPagoStatus String?     @map("mercado_pago_status") // Estado desde webhook de MP
   totalCents        Int         @map("total_cents") // Total en centavos
   currency          String      @default("MXN")
