@@ -160,8 +160,8 @@ model Order {
   
   // Datos de envío
   deliveryAddressId String?     @map("delivery_address_id")
-  recipientName     String
-  recipientPhone    String?
+  recipientName     String      @map("recipient_name")
+  recipientPhone    String?     @map("recipient_phone")
   street            String
   city              String
   state             String
