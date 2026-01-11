@@ -192,6 +192,32 @@ export default function VentasPage() {
     }
   }
 
+  const handleMarkAsDelivered = async (orderId: string) => {
+    setSaving(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/admin/ventas/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shippingStatus: "delivered",
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Error al marcar como entregado")
+      }
+
+      await fetchOrders()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al marcar como entregado")
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const filteredOrders = orders.filter((order) => {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
@@ -529,6 +555,17 @@ export default function VentasPage() {
                             )}
                           </div>
                         </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-blue-200">
+                        <Button
+                          onClick={() => handleMarkAsDelivered(order.id)}
+                          disabled={saving}
+                          style={{ backgroundColor: '#014495', color: 'white' }}
+                          className="w-full"
+                        >
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          {saving ? "Guardando..." : "Marcar como Entregado"}
+                        </Button>
                       </div>
                     </div>
                   )}
