@@ -145,9 +145,9 @@ export async function POST(request: Request) {
 
     // URL base de la aplicación
     // Priorizar NEXTAUTH_URL (dominio real) sobre VERCEL_URL (dominio temporal)
-    let baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    let baseUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL || "https://tienda.voxa.mx"
     
-    // Si NEXTAUTH_URL no tiene protocolo, agregarlo
+    // Si la URL no tiene protocolo, agregarlo
     if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
       baseUrl = `https://${baseUrl}`
     }
