@@ -6,7 +6,7 @@ export function Footer() {
     <footer className="mt-auto" style={{ backgroundColor: '#014495' }}>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <Logo size="lg" showTagline className="mb-6" />
+          <Logo size="lg" className="mb-6" />
         </div>
         <div className="mb-6">
           <h3 className="text-white font-semibold mb-4">SUPPORT & POLICIES</h3>
