@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 export function Navbar() {
   const { data: session } = useSession()
@@ -12,9 +13,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-50" style={{ backgroundColor: '#014495' }}>
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-white">
-            Tienda Voxa
-          </Link>
+          <Logo size="md" />
 
           <div className="flex items-center gap-4">
             <Link href="/catalogo">
