@@ -144,9 +144,13 @@ export async function POST(request: Request) {
     }))
 
     // URL base de la aplicación
-    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL || process.env.NEXTAUTH_URL}` 
-      : "http://localhost:3000"
+    // Priorizar NEXTAUTH_URL (dominio real) sobre VERCEL_URL (dominio temporal)
+    let baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    
+    // Si NEXTAUTH_URL no tiene protocolo, agregarlo
+    if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+      baseUrl = `https://${baseUrl}`
+    }
 
     // Crear preferencia en Mercado Pago
     const preferenceData = {
